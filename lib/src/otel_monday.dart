@@ -1,15 +1,16 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_monday_suppression.dart';
 
 const _tracerName = 'dartastic_otel_libs_monday';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 class MondayResult {
+  /// Creates a result.
   const MondayResult({
     this.boardId,
     this.boardKind,
@@ -58,8 +59,13 @@ class MondayResult {
   final int? statusCode;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class MondayCallResult<T> {
+  /// Creates a call result.
   const MondayCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final MondayResult? result;
 }
@@ -88,74 +94,74 @@ Future<T> tracedMonday<T>({
   final span = _tracer().startSpan(
     'monday $operationName',
     kind: SpanKind.client,
-    attributes: OTel.attributesFromMap(m),
+    attributes: OTelAPI.attributesFromMap(m),
   );
   try {
     final r = await invoke();
     if (r.result != null) {
       final extras = <Attribute<Object>>[];
       if (r.result!.boardId != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'monday.board.id',
           r.result!.boardId!,
         ));
       }
       if (r.result!.boardKind != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'monday.board.kind',
           r.result!.boardKind!,
         ));
       }
       if (r.result!.itemsCreated != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'monday.items_created',
           r.result!.itemsCreated!,
         ));
       }
       if (r.result!.itemsReturned != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'monday.items_returned',
           r.result!.itemsReturned!,
         ));
       }
       if (r.result!.complexity != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'monday.complexity',
           r.result!.complexity!,
         ));
       }
       if (r.result!.complexityBefore != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'monday.complexity.before',
           r.result!.complexityBefore!,
         ));
       }
       if (r.result!.complexityAfter != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'monday.complexity.after',
           r.result!.complexityAfter!,
         ));
       }
       if (r.result!.complexityResetIn != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'monday.complexity.reset_in_sec',
           r.result!.complexityResetIn!,
         ));
       }
       if (r.result!.apiVersion != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'monday.api_version',
           r.result!.apiVersion!,
         ));
       }
       if (r.result!.requestId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'monday.request.id',
           r.result!.requestId!,
         ));
       }
       if (r.result!.statusCode != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'http.response.status_code',
           r.result!.statusCode!,
         ));
@@ -166,13 +172,13 @@ Future<T> tracedMonday<T>({
           );
         }
       }
-      if (extras.isNotEmpty) span.addAttributes(OTel.attributes(extras));
+      if (extras.isNotEmpty) span.addAttributes(OTelAPI.attributes(extras));
     }
     return r.value;
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
